@@ -1,0 +1,26 @@
+{
+    "activity": "$activity",
+    "idCardType": "$idCardType",
+    "idCardNumber": "$idCardNumber",
+    "titleName": "$titleName",
+    "address": {
+        "homeNumber": "$address.homeNumber",
+        "mooBan": "$address.mooBan",
+        "province": "$address.province",
+        "zipCode": "$address.zipCode"
+    },
+    "contactPerson": [
+        {
+            "firstName": "$contactPerson[0].firstName",
+            "lastName": "$contactPerson[0].lastName",
+            "nationality": "$contactPerson[0].nationality",
+            "phone": [
+                {
+                    "phoneType": "$contactPerson[0].phone[0].phoneType",
+                    "phoneNumber": "$contactPerson[0].phone[0].phoneNumber"
+                }
+            ]
+        }
+    ],
+    "nationality": ""
+}
