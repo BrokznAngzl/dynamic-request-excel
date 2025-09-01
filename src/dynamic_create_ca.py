@@ -12,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 url = "{url}"
 parameter_center_path = '../resource/parameter_center.xlsx'
 new_profile_excel_path = '../resource/new_profile.xlsx.xlsx'
-request_path = "../resource/request.txt.txt"
+request_path = "../resource/request.txt"
 
 token = "{token}"
 headers = {
