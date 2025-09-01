@@ -24,3 +24,13 @@ source venv/bin/activate     # On Windows use: venv\Scripts\activate
 
 # 3. Install required packages
 pip install -r requirements.txt
+```
+
+### Run Script
+
+```bash
+# 1. Fix Your Child Path
+change os.chdir() at line: 19 
+
+# 2. Run Your Python
+python.\src\dynamic_create_account.py --dm https://your-domain --rc 10
