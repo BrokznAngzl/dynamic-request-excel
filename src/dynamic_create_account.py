@@ -1,4 +1,6 @@
+import argparse
 import json
+import os
 import re
 from datetime import datetime
 
@@ -9,16 +11,12 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-url = "{url}"
 parameter_center_path = '../resource/parameter_center.xlsx'
 new_profile_excel_path = '../resource/new_profile.xlsx.xlsx'
 request_path = "../resource/request.txt"
-
-token = "{token}"
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {token}"
-}
+token_request_path = "../resource/request.txt"
+create_account_endpoint = "/create-account"
+os.chdir("D:/auto-create-account/src")
 
 
 def get_account_info(response):
@@ -120,14 +118,14 @@ def get_payload(record):
     return body
 
 
-def create_account(record):
+def create_account(record, domain, headers):
     try:
-        print(f"prepare properties for record: {record}")
+        print(f"start sending request record {record}")
         payload = get_payload(record)
         # print(f"payload: {payload}")
-
         print("sending request...")
-        response = requests.post(url, json=payload, headers=headers, verify=False)
+        create_account_url = domain + create_account_endpoint
+        response = requests.post(create_account_url, json=payload, headers=headers, verify=False)
         print(f"Status: {response.status_code} - {response.text}")
         account_no, active_date = get_account_info(response)
 
@@ -138,7 +136,42 @@ def create_account(record):
         print(f"Error: {str(e)}")
 
 
-if __name__ == "__main__":
-    profile_records = 10
-    for i in range(profile_records):
-        create_account(i)
+def get_token(domain):
+    with open(token_request_path, 'r', encoding='utf-8') as user_file:
+        body = json.load(user_file)
+
+    endpoint = '/auth/authenticate'
+    url = domain + endpoint
+    response = requests.post(url, json=body, verify=False)
+
+    if response.status_code == 200:
+        token = response.json().get('token')
+        if not token:
+            raise ValueError("token not found in response")
+        return token
+    else:
+        raise RuntimeError(f"Request failed: {response}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dm', required=True, help='Bearer token for authentication')
+    parser.add_argument('--rc', required=False, default=1, help='Information Records')
+    args = parser.parse_args()
+    domain = args.dm
+    records = args.rc
+    print(f'domain: {domain}')
+    token = get_token(domain)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"{token}"
+    }
+
+    for record in range(records):
+        print(f"loop in {record}")
+        create_account(record, domain, headers)
+
+
+if __name__ == '__main__':
+    main()
