@@ -8,6 +8,7 @@ import openpyxl
 import pandas as pd
 import requests
 import urllib3
+from glom import assign, Path
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -49,53 +50,22 @@ def get_value_from_excel(row, column):
     return "" if pd.isna(value) or str(value).strip() == "" else str(value).strip()
 
 
-def split_keys(key_string):
-    parts = []
-    for part in key_string.split('.'):
-        matches = re.findall(r'([^\[\]]+)|\[(\d+)\]', part)
-        for name, idx in matches:
-            if name:
-                parts.append(name)
-            if idx:
-                parts.append(int(idx))
-    return parts
-
-
-def set_nested_value(d, key_string, value):
-    # too many condition
-    # need more implement
-    keys = split_keys(key_string)
-    for i, key in enumerate(keys[:-1]):
-        next_key = keys[i + 1]
-
-        if isinstance(key, int):
-            if not isinstance(d, list):
-                print(f"Error: Expected list but got {type(d).__name__} at key {key}")
-                raise TypeError(f"Expected list at this level but got {type(d)}")
-            while len(d) <= key:
-                d.append({} if not isinstance(next_key, int) else [])
-            d = d[key]
+def parse_key_to_path(key_string):
+    parts = re.findall(r'\w+|\[\d+\]', key_string)
+    path = []
+    for part in parts:
+        if part.startswith('['):
+            path.append(int(part[1:-1]))
         else:
-            if not isinstance(d, dict):
-                print(f"Error: Expected dict but got {type(d).__name__} at key {key}")
-                raise TypeError(f"Expected dict at this level but got {type(d)}")
-            if key not in d:
-                d[key] = [] if isinstance(next_key, int) else {}
-            d = d[key]
+            path.append(part)
+    return Path(*path)
 
-    last_key = keys[-1]
-    if isinstance(last_key, int):
-        if not isinstance(d, list):
-            print(f"Error: Expected list at last level but got {type(d).__name__}")
-            raise TypeError(f"Expected list at last level but got {type(d)}")
-        while len(d) <= last_key:
-            d.append(None)
-        d[last_key] = value
-    else:
-        if not isinstance(d, dict):
-            # print(f"Error: Expected dict at last level but got {type(d).__name__}")
-            raise TypeError(f"Expected dict at last level but got {type(d)}")
-        d[last_key] = value
+
+def set_nested_value(data, column, value):
+    # print(f'column: {column}')
+    # print(f'value: {value}')
+    path = parse_key_to_path(column)
+    assign(data, path, value)
 
 
 def get_payload(record):
